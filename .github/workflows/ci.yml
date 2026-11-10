@@ -1,0 +1,81 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  branch-predictor-lab:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: branch-predictor-lab
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -t .
+      - name: Experiment sweep (writes results.csv)
+        run: python run_experiments.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bplab-results-py${{ matrix.python-version }}
+          path: branch-predictor-lab/results.csv
+          retention-days: 14
+
+  cache-hierarchy-simulator:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: cache-hierarchy-simulator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -t .
+      - name: Experiment sweep (writes results.csv)
+        run: python run_experiments.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cachesim-results-py${{ matrix.python-version }}
+          path: cache-hierarchy-simulator/results.csv
+          retention-days: 14
+
+  ooo-core-simulator:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    defaults:
+      run:
+        working-directory: ooo-core-simulator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Unit tests
+        run: python -m unittest discover -s tests -t .
+      - name: IPC/MLP sweep (writes results.csv)
+        run: python run_experiments.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ooosim-results-py${{ matrix.python-version }}
+          path: ooo-core-simulator/results.csv
+          retention-days: 14
